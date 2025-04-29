@@ -27,7 +27,7 @@ def enviar_email(destinatario, codigo):
         print("❌ Erro ao enviar email:", e)
 
 def limpar_terminal():
-    os.system('cls' if os.name == 'nt' else 'clear')
+    os.system('cls')
 
 # ----------------------------
 # Validações
@@ -65,7 +65,7 @@ def validar_senha(email):
             print("Senha inválida. Use apenas letras e números (sem símbolos ou espaços).")
             continue
 
-        if len(senha) = 8 and re.search(r"[A-Z]", senha) and re.search(r"[0-9]", senha):
+        if len(senha) == 8 and re.search(r"[A-Z]", senha) and re.search(r"[0-9]", senha):
             confirmar_senha = input("Confirme sua senha: ").strip()
             if confirmar_senha == senha:
                 codigo = random.randint(100000, 999999)
@@ -128,6 +128,12 @@ def listar_usuarios():
     except FileNotFoundError:
         print("Arquivo de usuários não encontrado.")
 
+    print("\nLimpando a tela em:")
+    for i in range(3, 0, -1):
+        print(f"{i}...")
+        time.sleep(1)
+
+
 # ----------------------------
 # Exclusão de Usuário
 # ----------------------------
@@ -160,6 +166,13 @@ def excluir_usuario():
     except FileNotFoundError:
         print("Arquivo de usuários não encontrado.")
 
+    print("\nLimpando a tela em:")
+    for i in range(3, 0, -1):
+        print(f"{i}...")
+        time.sleep(1)
+
+    limpar_terminal()
+
 # ----------------------------
 # Menu Principal
 # ----------------------------
@@ -173,20 +186,24 @@ def menu():
         opcao = input("Escolha uma opção: ").strip()
 
         if opcao == "1":
+            limpar_terminal()
             cadastrar_usuario()
         elif opcao == "2":
+            limpar_terminal()
             listar_usuarios()
         elif opcao == "3":
+            limpar_terminal()
             excluir_usuario()
         elif opcao == "4":
             print("Encerrando o programa. Até mais!")
+            limpar_terminal()
             break
         else:
             print("Opção inválida. Tente novamente.")
+            limpar_terminal()
 
 # ----------------------------
 # Execução
 # ----------------------------
 if __name__ == "__main__":
     menu()
-
