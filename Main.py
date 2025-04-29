@@ -59,13 +59,13 @@ def validar_email():
 
 def validar_senha(email):
     while True:
-        senha = input("Digite sua senha (Somente letras e números, mínimo 8 caracteres, ex: Senha123): ").strip()
+        senha = input("Digite sua senha (Somente letras e números, 8 caracteres, ex: Senha123): ").strip()
 
         if not senha.isalnum():
             print("Senha inválida. Use apenas letras e números (sem símbolos ou espaços).")
             continue
 
-        if len(senha) >= 8 and re.search(r"[A-Z]", senha) and re.search(r"[0-9]", senha):
+        if len(senha) = 8 and re.search(r"[A-Z]", senha) and re.search(r"[0-9]", senha):
             confirmar_senha = input("Confirme sua senha: ").strip()
             if confirmar_senha == senha:
                 codigo = random.randint(100000, 999999)
@@ -80,7 +80,7 @@ def validar_senha(email):
             else:
                 print("As senhas não coincidem. Tente novamente.")
         else:
-            print("Senha inválida. Deve conter pelo menos 8 caracteres, uma letra maiúscula e um número.")
+            print("Senha inválida. Deve conter 8 caracteres, uma letra maiúscula e um número.")
 
 
 # ----------------------------
