@@ -6,70 +6,74 @@ import smtplib
 from email.message import EmailMessage
 
 # ----------------------------
-# Funções Utilitárias
+# Variáveis Globais
 # ----------------------------
-def enviar_email(destinatario, codigo):
-    email_remetente = "pedroperesb25@gmail.com"         # <-- Meu email
-    senha_app = "mfqjzbdknwelrern"                 # <-- Minha senha de app
+ARQUIVO_USUARIOS = "usuarios.txt"
+EMAIL_REMETENTE = "pedroperesb25@gmail.com"
+SENHA_APP = "mfqjzbdknwelrern"
+EMAIL_ADM = "pedro.peres@ufrpe.br"
+NOME_ADM = "Pedro Peres Benicio"
 
+# ----------------------------
+# Utilitários
+# ----------------------------
+def limpar_terminal():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def enviar_email(destinatario, codigo):
     msg = EmailMessage()
     msg["Subject"] = "Seu código de verificação"
-    msg["From"] = email_remetente
+    msg["From"] = EMAIL_REMETENTE
     msg["To"] = destinatario
     msg.set_content(f"Olá! Seu código de verificação é: {codigo}")
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(email_remetente, senha_app)
+            smtp.login(EMAIL_REMETENTE, SENHA_APP)
             smtp.send_message(msg)
         print("📧 Código de verificação enviado para o seu email!")
     except Exception as e:
         print("❌ Erro ao enviar email:", e)
 
-def limpar_terminal():
-    os.system('cls')
-
 # ----------------------------
 # Validações
 # ----------------------------
-
 def validar_nome():
     while True:
         nome = input("Digite seu nome completo: ").strip().title()
         if re.fullmatch(r"[A-Za-zÀ-ÿ\s]+", nome):
             return nome
         else:
-            print("Nome inválido! Use apenas letras e espaços (sem números ou símbolos).")
+            print("Nome inválido! Use apenas letras e espaços.")
 
 def validar_email():
     while True:
-        email = input("Digite seu email: (Ex: usuario@ufrpe.br) ").strip().lower()
+        email = input("Digite seu email (Ex: usuario@ufrpe.br): ").strip().lower()
         erros = []
         if "@" not in email:
             erros.append("faltando '@'")
-        if not re.search(r"\.(br)$", email):
-            erros.append("faltando (.br) ou domínio inválido (.com, .org, .br)")
-        if not re.search(r"@(ufrpe)\.br", email):
-            erros.append("faltando (ufrpe) ou provedor de domínio inválido (gmail, hotmail, outlook)")
+        if not re.search(r"\\.br$", email):
+            erros.append("faltando domínio .br")
+        if not re.search(r"@(ufrpe)\\.br", email):
+            erros.append("provedor inválido (ex: ufrpe.br)")
 
         if not erros:
             return email
         print(f"Email inválido: {', '.join(erros)}")
 
-
 def validar_senha(email):
     while True:
-        senha = input("Digite sua senha (Somente letras e números, 8 caracteres, ex: Senha123): ").strip()
+        senha = input("Digite sua senha (8 caracteres, apenas letras e números, ex: Senha123): ").strip()
 
         if not senha.isalnum():
-            print("Senha inválida. Use apenas letras e números (sem símbolos ou espaços).")
+            print("Senha inválida. Use apenas letras e números (sem símbolos).")
             continue
 
         if len(senha) == 8 and re.search(r"[A-Z]", senha) and re.search(r"[0-9]", senha):
             confirmar_senha = input("Confirme sua senha: ").strip()
             if confirmar_senha == senha:
                 codigo = random.randint(100000, 999999)
-                enviar_email(email, codigo)  # ⬅️ envia o código por email
+                enviar_email(email, codigo)
                 while True:
                     codigo_digitado = input("Digite o código de verificação enviado por email: ").strip()
                     if codigo_digitado == str(codigo):
@@ -82,39 +86,71 @@ def validar_senha(email):
         else:
             print("Senha inválida. Deve conter 8 caracteres, uma letra maiúscula e um número.")
 
+# ----------------------------
+# Gerenciamento de Usuários
+# ----------------------------
+def email_ja_cadastrado(email):
+    try:
+        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
+            for linha in arquivo:
+                _, e, _ = linha.strip().split(";")
+                if e == email:
+                    return True
+    except FileNotFoundError:
+        pass
+    return False
 
-# ----------------------------
-# Cadastro de Usuário
-# ----------------------------
 def cadastrar_usuario():
     print("=== Cadastro de Usuário ===\n")
     nome = validar_nome()
     email = validar_email()
+
+    if email_ja_cadastrado(email):
+        print("Este email já está cadastrado. Redirecionando para o menu de login...")
+        time.sleep(2)
+        return None
+
     senha = validar_senha(email)
-
-
-    with open("usuarios.txt", "a", encoding="utf-8") as arquivo:
+    with open(ARQUIVO_USUARIOS, "a", encoding="utf-8") as arquivo:
         arquivo.write(f"{nome};{email};{senha}\n")
 
-    limpar_terminal()
     print("✅ Cadastro realizado com sucesso!")
-    print(f"Nome: {nome}")
-    print(f"Email: {email}")
-    print("Sua senha foi salva com segurança!")
-
-    print("\nLimpando a tela em:")
-    for i in range(3, 0, -1):
-        print(f"{i}...")
-        time.sleep(1)
-
+    print("Limpando a tela...")
+    time.sleep(2)
     limpar_terminal()
+    return email
 
-# ----------------------------
-# Listagem de Usuários
-# ----------------------------
+def login():
+    print("=== Login ===")
+    email = input("Email: ").strip().lower()
+    if email == EMAIL_ADM:
+        codigo = random.randint(100000, 999999)
+        enviar_email(email, codigo)
+        codigo_digitado = input("Digite o código enviado ao email do administrador: ")
+        if str(codigo_digitado) == str(codigo):
+            print("✅ Login de administrador bem-sucedido!")
+            return (NOME_ADM, EMAIL_ADM)
+        else:
+            print("❌ Código incorreto.")
+            return None
+
+    senha = input("Senha: ").strip()
+    try:
+        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
+            for linha in arquivo:
+                nome, e, s = linha.strip().split(";")
+                if e == email and s == senha:
+                    print("✅ Login bem-sucedido!")
+                    return (nome, email)
+    except FileNotFoundError:
+        pass
+
+    print("❌ Email ou senha inválidos.")
+    return None
+
 def listar_usuarios():
     try:
-        with open("usuarios.txt", "r", encoding="utf-8") as arquivo:
+        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
             linhas = arquivo.readlines()
 
         if not linhas:
@@ -123,87 +159,130 @@ def listar_usuarios():
 
         print("=== Lista de Usuários Cadastrados ===\n")
         for i, linha in enumerate(linhas, 1):
-            nome, email, senha = linha.strip().split(";")
+            nome, email, _ = linha.strip().split(";")
             print(f"{i}. Nome: {nome} | Email: {email}")
     except FileNotFoundError:
         print("Arquivo de usuários não encontrado.")
 
-    print("\nLimpando a tela em:")
-    for i in range(3, 0, -1):
-        print(f"{i}...")
-        time.sleep(1)
+    print("\nVoltando ao menu...")
+    time.sleep(2)
 
-
-# ----------------------------
-# Exclusão de Usuário
-# ----------------------------
 def excluir_usuario():
+    email_excluir = input("Digite o email do usuário que deseja excluir: ").strip().lower()
     try:
-        with open("usuarios.txt", "r", encoding="utf-8") as arquivo:
+        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
             linhas = arquivo.readlines()
 
-        if not linhas:
-            print("Nenhum usuário cadastrado.")
-            return
+        nova_lista = [linha for linha in linhas if linha.strip().split(";")[1] != email_excluir]
 
-        email_excluir = input("Digite o email do usuário que deseja excluir: ").strip().lower()
+        if len(nova_lista) == len(linhas):
+            print("Usuário não encontrado.")
+        else:
+            with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
+                arquivo.writelines(nova_lista)
+            print("Usuário excluído com sucesso!")
+    except FileNotFoundError:
+        print("Arquivo não encontrado.")
+    time.sleep(2)
+
+def alterar_dados_usuario(email_usuario):
+    try:
+        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
+            linhas = arquivo.readlines()
+
         nova_lista = []
-        encontrado = False
-
         for linha in linhas:
             nome, email, senha = linha.strip().split(";")
-            if email != email_excluir:
-                nova_lista.append(linha)
+            if email == email_usuario:
+                print("O que deseja alterar?")
+                print("1 - Nome")
+                print("2 - Senha")
+                escolha = input("Escolha uma opção: ")
+                if escolha == "1":
+                    nome = validar_nome()
+                elif escolha == "2":
+                    senha = validar_senha(email)
+                else:
+                    print("Opção inválida.")
+                nova_lista.append(f"{nome};{email};{senha}\n")
             else:
-                encontrado = True
+                nova_lista.append(linha)
 
-        if encontrado:
-            with open("usuarios.txt", "w", encoding="utf-8") as arquivo:
-                arquivo.writelines(nova_lista)
-            print(f"Usuário com email '{email_excluir}' foi excluído com sucesso.")
-        else:
-            print("Usuário não encontrado.")
-    except FileNotFoundError:
-        print("Arquivo de usuários não encontrado.")
-
-    print("\nLimpando a tela em:")
-    for i in range(3, 0, -1):
-        print(f"{i}...")
-        time.sleep(1)
-
-    limpar_terminal()
+        with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
+            arquivo.writelines(nova_lista)
+        print("Dados alterados com sucesso!")
+    except Exception as e:
+        print("Erro ao alterar dados:", e)
 
 # ----------------------------
-# Menu Principal
+# Menus
 # ----------------------------
-def menu():
+def menu_adm():
     while True:
-        print("\n=== MENU PRINCIPAL ===")
+        print("\n=== MENU ADMINISTRADOR ===")
         print("1 - Cadastrar novo usuário")
         print("2 - Listar usuários")
         print("3 - Excluir usuário")
         print("4 - Sair")
-        opcao = input("Escolha uma opção: ").strip()
+        opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
-            limpar_terminal()
             cadastrar_usuario()
         elif opcao == "2":
-            limpar_terminal()
             listar_usuarios()
         elif opcao == "3":
-            limpar_terminal()
             excluir_usuario()
         elif opcao == "4":
-            print("Encerrando o programa. Até mais!")
-            limpar_terminal()
+            break
+        else:
+            print("Opção inválida.")
+
+def menu_usuario(nome, email):
+    while True:
+        print(f"\nBem-vindo, {nome}!")
+        print("1 - Ver minhas informações")
+        print("2 - Alterar meus dados")
+        print("3 - Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            print(f"\nNome: {nome}")
+            print(f"Email: {email}")
+        elif opcao == "2":
+            alterar_dados_usuario(email)
+        elif opcao == "3":
+            break
+        else:
+            print("Opção inválida.")
+
+# ----------------------------
+# Execução Principal
+# ----------------------------
+def menu_login_cadastro():
+    while True:
+        print("\n=== LOGIN / CADASTRO ===")
+        print("1 - Login")
+        print("2 - Cadastrar-se")
+        print("3 - Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            resultado = login()
+            if resultado:
+                nome, email = resultado
+                if email == EMAIL_ADM:
+                    menu_adm()
+                else:
+                    menu_usuario(nome, email)
+        elif opcao == "2":
+            email_cadastrado = cadastrar_usuario()
+            if email_cadastrado:
+                continue 
+        elif opcao == "3":
+            print("Encerrando o sistema...")
             break
         else:
             print("Opção inválida. Tente novamente.")
-            limpar_terminal()
 
-# ----------------------------
-# Execução
-# ----------------------------
 if __name__ == "__main__":
-    menu()
+    menu_login_cadastro()
