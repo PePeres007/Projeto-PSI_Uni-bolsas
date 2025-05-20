@@ -20,9 +20,9 @@ NOME_ADM = "Pedro Peres Benicio"
 def limpar_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def enviar_email(destinatario, codigo):
+def enviar_email(destinatario, codigo, info):
     msg = EmailMessage()
-    msg["Subject"] = "Seu código de verificação"
+    msg["Subject"] = info
     msg["From"] = EMAIL_REMETENTE
     msg["To"] = destinatario
     msg.set_content(f"Olá! Seu código de verificação é: {codigo}")
@@ -31,9 +31,9 @@ def enviar_email(destinatario, codigo):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(EMAIL_REMETENTE, SENHA_APP)
             smtp.send_message(msg)
-        print("📧 Código de verificação enviado para o seu email!")
+        print(" Código de verificação enviado para o seu email!")
     except Exception as e:
-        print("❌ Erro ao enviar email:", e)
+        print(" Erro ao enviar email:", e)
 
 # ----------------------------
 # Validações
@@ -52,9 +52,9 @@ def validar_email():
         erros = []
         if "@" not in email:
             erros.append("faltando '@'")
-        if not re.search(r"\\.br$", email):
+        if not re.search(r".br$", email):
             erros.append("faltando domínio .br")
-        if not re.search(r"@(ufrpe)\\.br", email):
+        if not re.search(r"@(ufrpe).br$", email):
             erros.append("provedor inválido (ex: ufrpe.br)")
 
         if not erros:
@@ -73,7 +73,8 @@ def validar_senha(email):
             confirmar_senha = input("Confirme sua senha: ").strip()
             if confirmar_senha == senha:
                 codigo = random.randint(100000, 999999)
-                enviar_email(email, codigo)
+                mensagem = ("Código para validação de indentidade e confirmação de senha: ")
+                enviar_email(email, codigo, mensagem)
                 while True:
                     codigo_digitado = input("Digite o código de verificação enviado por email: ").strip()
                     if codigo_digitado == str(codigo):
@@ -125,7 +126,8 @@ def login():
     email = input("Email: ").strip().lower()
     if email == EMAIL_ADM:
         codigo = random.randint(100000, 999999)
-        enviar_email(email, codigo)
+        mensagem = ("òtimo dia administrador, aqui está seu codigo de acesso: ")
+        enviar_email(email, codigo, mensagem)
         codigo_digitado = input("Digite o código enviado ao email do administrador: ")
         if str(codigo_digitado) == str(codigo):
             print("✅ Login de administrador bem-sucedido!")
@@ -157,7 +159,7 @@ def listar_usuarios():
             print("Nenhum usuário cadastrado ainda.")
             return
 
-        print("=== Lista de Usuários Cadastrados ===\n")
+        print("\n=== Lista de Usuários Cadastrados ===\n")
         for i, linha in enumerate(linhas, 1):
             nome, email, _ = linha.strip().split(";")
             print(f"{i}. Nome: {nome} | Email: {email}")
@@ -201,7 +203,12 @@ def alterar_dados_usuario(email_usuario):
                 if escolha == "1":
                     nome = validar_nome()
                 elif escolha == "2":
-                    senha = validar_senha(email)
+                    senha_antiga = input("Digite sua senha antiga: ")
+                    if senha_antiga == senha:
+                        senha = validar_senha(email)
+                    else:
+                        print("Senha invalida. Retornando para alteração de dados")
+                        alterar_dados_usuario(email_usuario)
                 else:
                     print("Opção inválida.")
                 nova_lista.append(f"{nome};{email};{senha}\n")
@@ -259,6 +266,7 @@ def menu_usuario(nome, email):
 # Execução Principal
 # ----------------------------
 def menu_login_cadastro():
+    limpar_terminal()
     while True:
         print("\n=== LOGIN / CADASTRO ===")
         print("1 - Login")
