@@ -11,7 +11,7 @@ from email.message import EmailMessage
 ARQUIVO_USUARIOS = "usuarios.txt"
 EMAIL_REMETENTE = "pedroperesb25@gmail.com"
 SENHA_APP = "mfqjzbdknwelrern"
-EMAIL_ADM = "pedro.peres@ufrpe.br"
+EMAIL_ADM = "ppbenicio10@gmail.com"
 NOME_ADM = "Pedro Peres Benicio"
 
 # ----------------------------
@@ -22,10 +22,10 @@ def limpar_terminal():
 
 def enviar_email(destinatario, codigo, info):
     msg = EmailMessage()
-    msg["Subject"] = info
+    msg["Subject"] = "UniBolsas - Código de segurança"
     msg["From"] = EMAIL_REMETENTE
     msg["To"] = destinatario
-    msg.set_content(f"Olá! Seu código de verificação é: {codigo}")
+    msg.set_content(f"{info} {codigo}")
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
@@ -63,7 +63,7 @@ def validar_email():
 
 def validar_senha(email):
     while True:
-        senha = input("Digite sua senha (8 caracteres, apenas letras e números, ex: Senha123): ").strip()
+        senha = input("Crie sua nova senha (8 caracteres, apenas letras e números, ex: Senha123): ").strip()
 
         if not senha.isalnum():
             print("Senha inválida. Use apenas letras e números (sem símbolos).")
@@ -227,10 +227,70 @@ def alterar_dados_usuario(email_usuario):
 def menu_adm():
     while True:
         print("\n=== MENU ADMINISTRADOR ===")
+        print("1 - Gerenciar Sistema")
+        print("2 - Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            menu_gerenciar_sistema()
+        elif opcao == "2":
+            break
+        else:
+            print("Opção inválida.")
+
+
+def menu_usuario(nome, email):
+    while True:
+        print(f"\nBem-vindo, {nome}!")
+        print("1 - Configurações")
+        print("2 - Sair")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            nome = menu_configuracoes(nome, email)  # ← atualiza o nome
+        elif opcao == "2":
+            break
+        else:
+            print("Opção inválida.")
+
+# ----------------------------
+#Menus de Crud
+#-----------------------------
+def menu_configuracoes(nome, email):
+    while True:
+        print("\n=== CONFIGURAÇÕES ===")
+        print("1 - Ver minhas informações")
+        print("2 - Alterar meus dados")
+        print("3 - Voltar")
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            print(f"\nNome: {nome}")
+            print(f"Email: {email}")
+        elif opcao == "2":
+            alterar_dados_usuario(email)
+            # Atualiza o nome após alteração
+            try:
+                with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
+                    for linha in arquivo:
+                        nome_lido, email_lido, _ = linha.strip().split(";")
+                        if email_lido == email:
+                            nome = nome_lido
+                            break
+            except FileNotFoundError:
+                print("Erro ao atualizar nome em memória.")
+        elif opcao == "3":
+            return nome  # ← retorna o nome atualizado
+        else:
+            print("Opção inválida.")
+
+def menu_gerenciar_sistema():
+    while True:
+        print("\n=== GERENCIAR SISTEMA ===")
         print("1 - Cadastrar novo usuário")
         print("2 - Listar usuários")
         print("3 - Excluir usuário")
-        print("4 - Sair")
+        print("4 - Voltar")
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
@@ -244,23 +304,6 @@ def menu_adm():
         else:
             print("Opção inválida.")
 
-def menu_usuario(nome, email):
-    while True:
-        print(f"\nBem-vindo, {nome}!")
-        print("1 - Ver minhas informações")
-        print("2 - Alterar meus dados")
-        print("3 - Sair")
-        opcao = input("Escolha uma opção: ")
-
-        if opcao == "1":
-            print(f"\nNome: {nome}")
-            print(f"Email: {email}")
-        elif opcao == "2":
-            alterar_dados_usuario(email)
-        elif opcao == "3":
-            break
-        else:
-            print("Opção inválida.")
 
 # ----------------------------
 # Execução Principal
@@ -285,7 +328,7 @@ def menu_login_cadastro():
         elif opcao == "2":
             email_cadastrado = cadastrar_usuario()
             if email_cadastrado:
-                continue 
+                continue
         elif opcao == "3":
             print("Encerrando o sistema...")
             break
