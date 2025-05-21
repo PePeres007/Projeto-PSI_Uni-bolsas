@@ -187,6 +187,39 @@ def excluir_usuario():
         print("Arquivo não encontrado.")
     time.sleep(2)
 
+def excluir_propria_conta(email_usuario):
+    confirmacao = input("Tem certeza que deseja excluir sua conta? Digite 'SIM' para confirmar: ").strip().upper()
+    if confirmacao != "SIM":
+        print("❌ Exclusão cancelada.")
+        return False
+
+    senha_digitada = input("Digite sua senha para confirmar: ").strip()
+    try:
+        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
+            linhas = arquivo.readlines()
+
+        nova_lista = []
+        conta_excluida = False
+
+        for linha in linhas:
+            nome, email, senha = linha.strip().split(";")
+            if email == email_usuario and senha_digitada == senha:
+                conta_excluida = True  # Marca que vamos excluir
+            else:
+                nova_lista.append(linha)
+
+        if conta_excluida:
+            with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
+                arquivo.writelines(nova_lista)
+            print("✅ Sua conta foi excluída com sucesso.")
+            return True
+        else:
+            print("❌ Senha incorreta. Conta não foi excluída.")
+            return False
+    except Exception as e:
+        print("Erro ao excluir conta:", e)
+        return False
+
 def alterar_dados_usuario(email_usuario):
     try:
         with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
@@ -303,7 +336,8 @@ def menu_configuracoes(nome, email):
         print("\n=== CONFIGURAÇÕES ===")
         print("1 - Ver minhas informações")
         print("2 - Alterar meus dados")
-        print("3 - Voltar")
+        print("3 - Excluir minha conta")
+        print("4 - Voltar")
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
@@ -311,18 +345,14 @@ def menu_configuracoes(nome, email):
             print(f"Email: {email}")
         elif opcao == "2":
             alterar_dados_usuario(email)
-            # Atualiza o nome após alteração
-            try:
-                with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
-                    for linha in arquivo:
-                        nome_lido, email_lido, _ = linha.strip().split(";")
-                        if email_lido == email:
-                            nome = nome_lido
-                            break
-            except FileNotFoundError:
-                print("Erro ao atualizar nome em memória.")
         elif opcao == "3":
-            return nome  # ← retorna o nome atualizado
+            if excluir_propria_conta(email):
+                print("Encerrando sessão...")
+                time.sleep(2)
+                limpar_terminal()
+                menu_login_cadastro()
+        elif opcao == "4":
+            break
         else:
             print("Opção inválida.")
 
@@ -353,10 +383,11 @@ def menu_gerenciar_sistema():
 def menu_login_cadastro():
     limpar_terminal()
     while True:
-        print("1 - Login")
-        print("2 - Cadastrar-se")
-        print("3 - Redefinir senha")
-        print("4 - Sair")
+        print("Uni Bolsas UFRPE\n"
+        "1 - Login\n"
+        "2 - Cadastrar-se\n"
+        "3 - Redefinir senha\n"
+        "4 - Sair\n")
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
