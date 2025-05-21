@@ -221,6 +221,48 @@ def alterar_dados_usuario(email_usuario):
     except Exception as e:
         print("Erro ao alterar dados:", e)
 
+
+def redefinir_senha():
+    print("\n=== Redefinir Senha ===")
+    email = input("Digite seu email: ").strip().lower()
+
+    if not email_ja_cadastrado(email):
+        print("❌ Email não encontrado.")
+        return
+
+    # Envia código de verificação
+    codigo = random.randint(100000, 999999)
+    mensagem = "Código para redefinição de senha:"
+    enviar_email(email, codigo, mensagem)
+
+    for tentativa in range(3):
+        codigo_digitado = input("Digite o código enviado ao seu email: ").strip()
+        if codigo_digitado == str(codigo):
+            print("✅ Código correto.")
+            nova_senha = validar_senha(email)
+
+            # Atualiza a senha no arquivo
+            try:
+                with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
+                    linhas = arquivo.readlines()
+
+                with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
+                    for linha in linhas:
+                        nome, e, senha_antiga = linha.strip().split(";")
+                        if e == email:
+                            arquivo.write(f"{nome};{email};{nova_senha}\n")
+                        else:
+                            arquivo.write(linha)
+                print("✅ Senha redefinida com sucesso!")
+                return
+            except Exception as e:
+                print("Erro ao redefinir senha:", e)
+                return
+        else:
+            print("❌ Código incorreto. Tente novamente.")
+
+    print("Número máximo de tentativas excedido.")
+
 # ----------------------------
 # Menus
 # ----------------------------
@@ -311,10 +353,10 @@ def menu_gerenciar_sistema():
 def menu_login_cadastro():
     limpar_terminal()
     while True:
-        print("\n=== LOGIN / CADASTRO ===")
         print("1 - Login")
         print("2 - Cadastrar-se")
-        print("3 - Sair")
+        print("3 - Redefinir senha")
+        print("4 - Sair")
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
@@ -330,6 +372,8 @@ def menu_login_cadastro():
             if email_cadastrado:
                 continue
         elif opcao == "3":
+            redefinir_senha()
+        elif opcao == "4":
             print("Encerrando o sistema...")
             break
         else:
