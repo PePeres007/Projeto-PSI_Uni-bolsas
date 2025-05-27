@@ -19,9 +19,25 @@ NOME_ADM = "Pedro Peres Benicio"
 # funcionalidades extras
 # ---------------------------
 def limpar_terminal():
+    '''Limpa a tela com o comando cls se o sistema oeracional for windows,
+    senão limpa com o comando clear'''
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def enviar_email(destinatario, codigo, info):
+    """
+       Envia um email com um código de verificação para o destinatário especificado.
+
+       Parâmetros:
+       destinatario (str): Endereço de email do destinatário.
+       codigo (str): Código aleatório de verificação que será enviado.
+       info (str): Mensagem explicativa sobre para que é o código.
+
+       Funciona usando o servidor SMTP do Gmail com conexão SSL.
+       Requer as constantes EMAIL_REMETENTE e SENHA_APP que são variaváveis globais.
+
+       Em caso de sucesso, exibe uma mensagem de confirmação no terminal.
+       Em caso de erro, exibe uma mensagem de erro com o motivo.
+       """
     msg = EmailMessage()
     msg["Subject"] = "UniBolsas - Código de segurança"
     msg["From"] = EMAIL_REMETENTE
@@ -65,19 +81,21 @@ def listar_titulos_bolsas():
         print("Arquivo de bolsas não encontrado.")
         return []
 
-def validar_texto(caracteres):
+def validar_texto(caracteres, vazio = False):
     while True:
         texto = input(f"{caracteres}: ").strip()
+        if vazio and texto == "":
+            return None
         if re.fullmatch(r"[A-Za-zÀ-ÿ\s,.]+", texto):
             return texto
         else:
             print("Entrada inválida. Use apenas letras e espaços.")
 
 
-def validar_numero(numero, permitir_vazio=False):
+def validar_numero(numero, vazio = False):
     while True:
         valor = input(f"{numero}: ").strip()
-        if permitir_vazio and numero == "":
+        if vazio and valor == "":
             return None
         if re.fullmatch(r"\d+(\.\d{2})?", valor):
             return valor
@@ -179,11 +197,14 @@ def login():
                 nome, e, s = linha.strip().split(";")
                 if e == email and s == senha:
                     print("Login bem-sucedido!")
+                    print("Limpando a tela...")
+                    time.sleep(2)
+                    limpar_terminal()
                     return (nome, email)
     except FileNotFoundError:
         pass
 
-    print("❌ Email ou senha inválidos.")
+    print(" Email ou senha inválidos.")
     return None
 
 def listar_usuarios():
@@ -202,8 +223,10 @@ def listar_usuarios():
     except FileNotFoundError:
         print("Arquivo de usuários não encontrado.")
 
+    input("Digite qualquer tecla para retornar ao menu.")
     print("\nVoltando ao menu...")
     time.sleep(2)
+    limpar_terminal()
 
 def excluir_usuario():
     email_excluir = input("Digite o email do usuário que deseja excluir: ").strip().lower()
@@ -221,7 +244,9 @@ def excluir_usuario():
             print("Usuário excluído com sucesso!")
     except FileNotFoundError:
         print("Arquivo não encontrado.")
+    print("\nVoltando ao menu...")
     time.sleep(2)
+    limpar_terminal()
 
 def excluir_propria_conta(email_usuario):
     confirmacao = input("Tem certeza que deseja excluir sua conta? Digite 'SIM' para confirmar: ").strip().upper()
@@ -247,10 +272,10 @@ def excluir_propria_conta(email_usuario):
         if conta_excluida:
             with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
                 arquivo.writelines(nova_lista)
-            print("✅ Sua conta foi excluída com sucesso.")
+            print("Sua conta foi excluída com sucesso.")
             return True
         else:
-            print("❌ Senha incorreta. Conta não foi excluída.")
+            print("Senha incorreta. Conta não foi excluída.")
             return False
     except Exception as e:
         print("Erro ao excluir conta:", e)
@@ -295,7 +320,7 @@ def redefinir_senha():
     email = input("Digite seu email: ").strip().lower()
 
     if not email_ja_cadastrado(email):
-        print("❌ Email não encontrado.")
+        print(" Email não encontrado.")
         return
 
     # Envia código de verificação
@@ -306,7 +331,7 @@ def redefinir_senha():
     for tentativa in range(3):
         codigo_digitado = input("Digite o código enviado ao seu email: ").strip()
         if codigo_digitado == str(codigo):
-            print("✅ Código correto.")
+            print(" Código correto.")
             nova_senha = validar_senha(email)
 
             # Atualiza a senha no arquivo
@@ -321,13 +346,13 @@ def redefinir_senha():
                             arquivo.write(f"{nome};{email};{nova_senha}\n")
                         else:
                             arquivo.write(linha)
-                print("✅ Senha redefinida com sucesso!")
+                print("Senha redefinida com sucesso!")
                 return
             except Exception as e:
                 print("Erro ao redefinir senha:", e)
                 return
         else:
-            print("❌ Código incorreto. Tente novamente.")
+            print(" Código incorreto. Tente novamente.")
 
     print("Número máximo de tentativas excedido.")
 
@@ -357,7 +382,7 @@ def menu_gerenciar_bolsas():
         else:
             print("Opção inválida.")
 
-# Funcionalidades (menu_gerenciar_bolsas)
+#--------- Funcionalidades (menu_gerenciar_bolsas) ---------
 
 def adicionar_bolsa():
     print("\n=== Adicionar Nova Bolsa ===")
@@ -367,13 +392,13 @@ def adicionar_bolsa():
         print("Tipo inválido.")
         return
 
-    titulo = validar_texto("Digite o título da bolsa").title()
-    instituicao = validar_texto("Instituição provedora da bolsa")
-    valor = validar_numero("Valor da bolsa (em R$)")
-    duracao = validar_texto("Digite a duração da bolsa(ex: 2 semanas, 1 ano..)")
-    instrucoes = validar_texto("Instruções das atividades")
-    local = validar_texto("Local das atividades (endereço ou 'online')")
-    vagas = validar_numero("Número de vagas disponíveis")
+    titulo = validar_texto("Digite o título da bolsa", vazio = False).title()
+    instituicao = validar_texto("Instituição provedora da bolsa", vazio = False)
+    valor = validar_numero("Valor da bolsa (em R$)", vazio = False)
+    duracao = validar_texto("Digite a duração da bolsa(ex: Duas semanas, Cinco anos..)", vazio = False)
+    instrucoes = validar_texto("Instruções das atividades", vazio = False)
+    local = validar_texto("Local das atividades (endereço ou 'online')", vazio = False)
+    vagas = validar_numero("Número de vagas disponíveis", vazio = False)
 
     with open(ARQUIVO_BOLSAS, "a", encoding="utf-8") as arquivo:
         arquivo.write(f"{tipo};{titulo};{instituicao};{valor};{duracao};{instrucoes};{local};{vagas}\n")
@@ -417,15 +442,22 @@ def editar_bolsa():
 
         dados = bolsas[escolha - 1].strip().split(";")
         print("\n=== Editar Bolsa ===")
-        print("Apenas digite o valor anterior se não desejar alterar\n")
+        print("Digite Enter se desar manter o valor anterior\n")
 
-        novo_titulo = validar_texto(f"Título ({dados[1]})").title()
-        nova_instituicao = validar_texto(f"Instituição ({dados[2]})")
-        novo_valor = validar_numero(f"Valor ({dados[3]})")
-        nova_duracao = validar_texto(f"Duração ({dados[4]}")
-        novas_instrucoes = validar_texto(f"Instruções ({dados[5]})")
-        novo_local = validar_texto(f"Local ({dados[6]})")
-        novas_vagas = validar_numero(f"Vagas ({dados[7]})")
+        if (novo_titulo := validar_texto(f"Título ({dados[1]})", vazio = True)) is None: #Operador Walrus(':=')
+            novo_titulo = dados[1]
+        if (nova_instituicao := validar_texto(f"Instituição ({dados[2]})", vazio = True)) is None:
+            nova_instituicao = dados[2]
+        if (novo_valor := validar_numero(f"Valor ({dados[3]})", vazio = True)) is None:
+            novo_valor = dados[3]
+        if (nova_duracao := validar_texto(f"Duração ({dados[4]}", vazio = True)) is None:
+            nova_duracao = dados[4]
+        if (novas_instrucoes := validar_texto(f"Instruções ({dados[5]})", vazio = True)) is None:
+            novas_instrucoes = dados[5]
+        if (novo_local := validar_texto(f"Local ({dados[6]})", vazio = True)) is None:
+            novo_local = dados[6]
+        if (novas_vagas := validar_numero(f"Vagas ({dados[7]})", vazio = True)) is None:
+            novas_vagas = dados[7]
 
         nova_linha = f"{dados[0]};{novo_titulo};{nova_instituicao};{novo_valor};{nova_duracao};{novas_instrucoes};{novo_local};{novas_vagas}\n"
         bolsas[escolha - 1] = nova_linha
