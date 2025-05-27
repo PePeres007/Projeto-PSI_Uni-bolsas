@@ -19,8 +19,8 @@ NOME_ADM = "Pedro Peres Benicio"
 # funcionalidades extras
 # ---------------------------
 def limpar_terminal():
-    '''Limpa a tela com o comando cls se o sistema oeracional for windows,
-    senão limpa com o comando clear'''
+    """Limpa a tela com o comando cls se o sistema oeracional for windows,
+    senão limpa com o comando clear"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def enviar_email(destinatario, codigo, info):
@@ -35,17 +35,18 @@ def enviar_email(destinatario, codigo, info):
        Funciona usando o servidor SMTP do Gmail com conexão SSL.
        Requer as constantes EMAIL_REMETENTE e SENHA_APP que são variaváveis globais.
 
+       retorno:
        Em caso de sucesso, exibe uma mensagem de confirmação no terminal.
        Em caso de erro, exibe uma mensagem de erro com o motivo.
        """
-    msg = EmailMessage()
+    msg = EmailMessage() # define o objeto msg com a clase EmailMessage
     msg["Subject"] = "UniBolsas - Código de segurança"
     msg["From"] = EMAIL_REMETENTE
     msg["To"] = destinatario
     msg.set_content(f"{info} {codigo}")
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp: #Essa é uma classe da biblioteca smtplib que permite enviar e-mails usando o protocolo SMTP com SSL direto na conexão.
             smtp.login(EMAIL_REMETENTE, SENHA_APP)
             smtp.send_message(msg)
         print(" Código de verificação enviado para o seu email!")
@@ -53,6 +54,19 @@ def enviar_email(destinatario, codigo, info):
         print(" Erro ao enviar email:", e)
 
 def email_ja_cadastrado(email):
+    """
+        Verifica se o e-mail já está cadastrado em alguma linha da lista no arquivo 'usuarios.txt'
+
+        Parâmetro:
+        email (str): email ou inserido pelo usuário durante o cadastro ou do usuário logado no momento.
+
+        retorno:
+        Em caso de sucesso, caso o e-mail ja esteja cadastrado, retorna True.
+        Caso contrario, False
+
+        Exceções:
+        FileNotFoundError:  Caso o arquivo 'usuarios.txt' não exista, a função trata a exceção internamente com pass e retorna False.
+    """
     try:
         with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
             for linha in arquivo:
@@ -64,24 +78,59 @@ def email_ja_cadastrado(email):
     return False
 
 def listar_titulos_bolsas():
+    """
+        Lê o arquivo de bolsas e exibe uma lista numerada apenas com os títulos das bolsas cadastradas.
+
+        Retorno:
+        Uma lista com todas as linhas do arquivo 'bolsas.txt', onde cada linha representa uma bolsa cadastrada.
+        Caso o arquivo não exista ou esteja vazio, retorna uma lista vazia.
+
+        Exceções:
+        FileNotFoundError: Exibe uma mensagem de erro caso o arquivo de bolsas não seja encontrado.
+
+        Observação:
+        O título da bolsa é considerado como o segundo campo (índice 1) em cada linha, separado por ponto e vírgula.
+    """
     try:
         with open(ARQUIVO_BOLSAS, "r", encoding="utf-8") as arquivo:
-            linhas = arquivo.readlines()
-            if not linhas:
+            bolsas = arquivo.readlines()
+            if not bolsas:
                 print("Nenhuma bolsa cadastrada.")
                 return []
 
             print("\n=== Títulos das Bolsas Cadastradas ===")
-            for i, linha in enumerate(linhas):
+            for i, linha in enumerate(bolsas):
                 dados = linha.strip().split(";")
                 titulo = dados[1]
                 print(f"{i + 1}. {titulo}")
-            return linhas
+            return bolsas
     except FileNotFoundError:
         print("Arquivo de bolsas não encontrado.")
         return []
 
 def validar_texto(caracteres, vazio = False):
+    """
+       Recebe os dados que serão validaos por utra função e valida se contém apenas letras, espaços, vírgulas ou pontos.
+
+       Parâmetros:
+        caracteres (str): Texto que será recebido pra ser validado.
+        vazio (bool, opcional): Define se a entrada pode ser vazia, é definida como False por padrão, porem se for alterado
+        para true, permite a entrada vazia ("").
+
+       Retorno:
+        str ou None: Retorna o texto inserido, já com espaços removidos das extremidades, se for validado.
+        Retorna None se `vazio` for True e a entrada for vazia.
+
+       Validação:
+        A entrada só é considerada válida se contiver apenas:
+        - Letras (maiúsculas e minúsculas);
+        - Caracteres acentuados (á, é, ç);
+        - Espaços;
+        - Vírgulas ou pontos.
+
+       Observação:
+        Mostra mensagem de erro caso a entrada seja inválida, solicitando nova tentativa.
+    """
     while True:
         texto = input(f"{caracteres}: ").strip()
         if vazio and texto == "":
@@ -89,10 +138,31 @@ def validar_texto(caracteres, vazio = False):
         if re.fullmatch(r"[A-Za-zÀ-ÿ\s,.]+", texto):
             return texto
         else:
-            print("Entrada inválida. Use apenas letras e espaços.")
-
+            print("Entrada inválida. Use apenas letras, espaços, virgulas e pontos.")
 
 def validar_numero(numero, vazio = False):
+    """
+       Recebe os dados que serão validaos de outra função e valida se contém apenas número(real ou inteiro).
+
+       Parâmetros:
+        numero (str): Valor que será recebido pra ser validado.
+        vazio (bool, opcional): Define se a entrada pode ser vazia, é definida como False por padrão, porem se for alterado
+        para true, permite a entrada vazia ("").
+
+       Retorno:
+        str ou None: Retorna o valor inserido, já com espaços removidos das extremidades, se for validado.
+        Retorna None se `vazio` for True e a entrada for vazia.
+
+       Validação:
+        A entrada só é considerada válida se contiver apenas:
+        - Letras (maiúsculas e minúsculas);
+        - Caracteres acentuados (á, é, ç);
+        - Espaços;
+        - Vírgulas ou pontos.
+
+       Observação:
+        Mostra mensagem de erro caso a entrada seja inválida, solicitando nova tentativa.
+    """
     while True:
         valor = input(f"{numero}: ").strip()
         if vazio and valor == "":
@@ -106,11 +176,43 @@ def validar_numero(numero, vazio = False):
 # Validações
 # ----------------------------
 def validar_nome():
+    """
+        Solicita ao usuário que digite seu nome completo para a validação.
+
+         Validação:
+        A entrada só é considerada válida se contiver apenas:
+        - Letras (maiúsculas e minúsculas);
+        - Caracteres acentuados (á, é, ç);
+        - Espaços.
+
+        Retorno:
+            Nome completo (validado e no formato correto).
+    """
+
     while True:
-        nome = validar_texto("Digite seu nome completo").title()
-        return nome
+        nome = input("Digite seu nome completo: ").strip().title()
+        if re.fullmatch(r"[A-Za-zÀ-ÿ\s]+", nome):
+            return nome
+        else:
+            print("Nome inválido! Use apenas letras e espaços.")
 
 def validar_email():
+    """
+    Solicita ao usuário que digite seu e-mail institucional para a validação.
+
+    validação :
+     - Contém o caractere '@';
+     - Termina com '.br';
+     - Está no formato institucional da UFRPE (ex: usuario@ufrpe.br).
+
+    Retorno:
+        e-mail validado e formatado em letras minúsculas, com espaços removidos das extremidades.
+
+    Observação:
+        Caso o e-mail seja inválido, exibe uma mensagem de erro específica indicando o(s) problema(s), ques estão na lista 'erros',
+        e solicita nova tentativa até que o e-mail seja válido.
+    """
+
     while True:
         email = input("Digite seu email (Ex: usuario@ufrpe.br): ").strip().lower()
         erros = []
@@ -126,6 +228,30 @@ def validar_email():
         print(f"Email inválido: {', '.join(erros)}")
 
 def validar_senha(email):
+    """
+    Solicita ao usuário a criação de uma senha segura, valida os critérios e confirma a identidade por e-mail.
+
+    A senha deve atender aos seguintes critérios:
+        - Ter exatamente 8 caracteres;
+        - Conter pelo menos uma letra maiúscula;
+        - Conter pelo menos um número;
+        - Conter apenas letras e números (sem símbolos).
+
+    Funções:
+        enviar_email():
+            Após a confirmação da senha, um código de verificação é enviado para o e-mail fornecid.
+            O usuário deve inserir corretamente esse código para concluir a validação.
+
+    Parâmetros:
+        email (str): E-mail do usuário que receberá o código de verificação.
+
+    Retorno:
+        str: Senha validada e confirmada, se todas as etapas forem concluídas com sucesso.
+
+    Observação:
+        A função exibe mensagens de erro específicas caso a senha não atenda aos critérios, as confirmações falhem,
+        ou o código de verificação esteja incorreto.
+    """
     while True:
         senha = input("Crie sua nova senha (8 caracteres, apenas letras e números, ex: Senha123): ").strip()
 
@@ -154,8 +280,36 @@ def validar_senha(email):
 # ----------------------------
 # Gerenciamento de Usuários
 # ----------------------------
-
 def cadastrar_usuario():
+    """
+    Realiza o cadastro de um novo usuário, incluindo nome, e-mail e senha com verificação.
+
+    Etapas do processo:
+        1. Solicita o nome completo do usuário (com validação);
+        2. Solicita e valida o e-mail institucional;
+        3. Verifica se o e-mail já está cadastrado;
+        4. Caso o e-mail seja novo, solicita a criação da senha com validação e confirmação via código;
+        5. Salva os dados do usuário no arquivo de usuários.
+
+    Funções:
+        validar_nome():
+            Solicita e valida o nome completo do usuário.
+        validar_email():
+            Solicita e valida o e-mail institucional do usuário.
+        email_ja_cadastrado(email):
+            Verifica se o e-mail já está cadastrado. Caso esteja, o cadastro é interrompido.
+        validar_senha(email):
+            Solicita a criação de uma senha segura e realiza verificação por código via e-mail.
+
+    Retorno:
+        str: E-mail do usuário cadastrado, caso o processo seja concluído com sucesso.
+        None: Se o e-mail já estiver cadastrado.
+
+    Observação:
+        - Os dados são armazenados no formato: nome;email;senha;
+        - Em caso de e-mail já existente, o usuário é redirecionado para o menu de login.
+    """
+
     print("=== Cadastro de Usuário ===\n")
     nome = validar_nome()
     email = validar_email()
@@ -176,6 +330,32 @@ def cadastrar_usuario():
     return email
 
 def login():
+    """
+    Realiza o login do usuário, diferenciando entre administrador e usuários comuns.
+
+    Fluxo:
+        1. Solicita o e-mail do usuário;
+        2. Se for o e-mail do administrador, envia um código de acesso por e-mail para validação;
+        3. Se o código for confirmado, o login de administrador é concluído;
+        4. Para usuários comuns, solicita a senha e verifica as credenciais no arquivo de usuários;
+        5. Caso as credenciais estejam corretas, o login é realizado;
+        6. Em caso de falha, exibe mensagem de erro.
+
+    Funções utilizadas:
+        enviar_email(email, codigo, mensagem):
+            Envia um código de verificação por e-mail para oadministrador, sendo a senha gerada para ele.
+        limpar_terminal():
+            Limpa a tela do terminal após o login bem-sucedido.
+
+    Retorno:
+        Retorna uma tupla, cunjunto de variáveis, com o nome e e-mail do usuário logado (ou administrador).
+        None: Caso o login falhe por credenciais inválidas ou código incorreto.
+
+    Observação:
+        - Os dados dos usuários comuns são lidos do arquivo especificado em ARQUIVO_USUARIOS.
+        - O administrador realiza login via código enviado por e-mail para maior segurança.
+    """
+
     print("=== Login ===\n")
     email = input("Email: ").strip().lower()
     if email == EMAIL_ADM:
@@ -208,16 +388,37 @@ def login():
     return None
 
 def listar_usuarios():
+    """
+    Exibe todos os usuários cadastrados no sistema, mostrando nome e e-mail.
+
+    Fluxo:
+        1. Tenta abrir o arquivo de usuários;
+        2. Se o arquivo existir e houver usuários cadastrados, exibe uma lista numerada com nome e e-mail;
+        3. Caso não existam usuários ou o arquivo esteja vazio, informa que não há usuários cadastrados;
+        4. Aguarda o usuário pressionar uma tecla para voltar ao menu;
+        5. Limpa o terminal antes de retornar.
+
+    Funções utilizadas:
+        limpar_terminal():
+            Limpa a tela do terminal após exibir a lista de usuários.
+
+    Retorno:
+        None: A função apenas exibe informações, sem retornar dados.
+
+    Observação:
+        - Os dados são lidos do arquivo definido por ARQUIVO_USUARIOS;
+        - Senhas não são exibidas por questões de segurança.
+    """
     try:
         with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
-            linhas = arquivo.readlines()
+            usuarios = arquivo.readlines()
 
-        if not linhas:
+        if not usuarios:
             print("Nenhum usuário cadastrado ainda.")
             return
 
         print("\n=== Lista de Usuários Cadastrados ===\n")
-        for i, linha in enumerate(linhas, 1):
+        for i, linha in enumerate(usuarios, 1):
             nome, email, _ = linha.strip().split(";")
             print(f"{i}. Nome: {nome} | Email: {email}")
     except FileNotFoundError:
@@ -229,14 +430,35 @@ def listar_usuarios():
     limpar_terminal()
 
 def excluir_usuario():
+    """
+    Exclui um usuário do sistema com base no e-mail informado.
+
+    Fluxo:
+        1. Solicita o e-mail do usuário a ser excluído;
+        2. Lê o arquivo de usuários e filtra todas as entradas, removendo a linha correspondente ao e-mail informado;
+        3. Se o e-mail for encontrado, reescreve o arquivo com os dados atualizados (sem o usuário excluido);
+        4. Se o e-mail não for encontrado, informa que o usuário não existe;
+        5. Em caso de erro na leitura do arquivo, apresenta o erro para o usuário;
+        6. Após o processo, retorna ao menu e limpa o terminal.
+
+    Funções utilizadas:
+        limpar_terminal():
+            Limpa a tela do terminal após a exclusão ou falha.
+
+    Observação:
+        - A exclusão é baseada no e-mail exato digitado pelo administrador;
+        - Os dados são lidos e regravados no arquivo 'ARQUIVO_USUARIOS';
+        - O formato das linhas no arquivo deve ser: nome;email;senha;
+    """
     email_excluir = input("Digite o email do usuário que deseja excluir: ").strip().lower()
     try:
         with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
-            linhas = arquivo.readlines()
+            usuarios = arquivo.readlines()
 
-        nova_lista = [linha for linha in linhas if linha.strip().split(";")[1] != email_excluir]
+        nova_lista = [linha for linha in usuarios if linha.strip().split(";")[1] != email_excluir]
+# cria uma nova lista, onde percorre cada linha da lista usuarios e só adiciona na nova lista se o email for diferente do digitado para ser excluido.
 
-        if len(nova_lista) == len(linhas):
+        if len(nova_lista) == len(usuarios):
             print("Usuário não encontrado.")
         else:
             with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
@@ -249,6 +471,34 @@ def excluir_usuario():
     limpar_terminal()
 
 def excluir_propria_conta(email_usuario):
+    """
+    Permite que o usuário exclua a própria conta, mediante confirmação e validação da senha.
+
+    Fluxo:
+        1. Solicita confirmação do usuário digitando 'SIM' para prosseguir com a exclusão;
+        2. Solicita a senha para validar a identidade do usuário;
+        3. Lê o arquivo de usuários e remove a linha correspondente ao e-mail e senha informados;
+        4. Se a senha estiver correta, reescreve o arquivo sem os dados do usuário e confirma a exclusão;
+        5. Se a senha estiver incorreta, cancela a exclusão e informa o erro;
+        6. Em caso de erro na leitura ou escrita do arquivo, exibe uma mensagem de erro.
+
+    Parâmetros:
+        email_usuario (str): E-mail do usuário logado, usado para identificar qual conta excluir.
+
+    Retorno:
+        bool:
+            True – se a conta for excluída com sucesso;
+            False – se a exclusão for cancelada, a senha estiver incorreta ou ocorrer algum erro.
+
+    Exceções:
+            Qualquer erro ocorrido durante o processo de leitura ou escrita do arquivo será capturado, em 'e',
+            exibindo uma mensagem de erro no terminal e retornando False.
+
+    Observação:
+        - A exclusão só é feita se o e-mail e a senha corresponderem exatamente a uma linha do arquivo;
+        - O formato de cada linha do arquivo é: nome;email;senha.
+    """
+
     confirmacao = input("Tem certeza que deseja excluir sua conta? Digite 'SIM' para confirmar: ").strip().upper()
     if confirmacao != "SIM":
         print(" Exclusão cancelada.")
@@ -257,13 +507,13 @@ def excluir_propria_conta(email_usuario):
     senha_digitada = input("Digite sua senha para confirmar: ").strip()
     try:
         with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
-            linhas = arquivo.readlines()
+            usuarios = arquivo.readlines()
 
         nova_lista = []
         conta_excluida = False
 
-        for linha in linhas:
-            nome, email, senha = linha.strip().split(";")
+        for linha in usuarios:
+            n, email, senha = linha.strip().split(";")
             if email == email_usuario and senha_digitada == senha:
                 conta_excluida = True
             else:
@@ -282,12 +532,38 @@ def excluir_propria_conta(email_usuario):
         return False
 
 def alterar_dados_usuario(email_usuario):
+    """
+    Permite que o usuário altere seus próprios dados (nome ou senha), mediante verificação.
+
+    Fluxo:
+        1. Lê todas as linhas do arquivo de usuários;
+        2. Identifica a linha correspondente ao e-mail do usuário logado;
+        3. Pergunta ao usuário se deseja alterar o nome ou a senha;
+        4. Caso escolha alterar o nome, solicita um novo nome com validação;
+        5. Caso escolha alterar a senha, exige a senha atual como verificação e, se correta, permite definir uma nova;
+        6. Reescreve o arquivo de usuários com os dados atualizados;
+        7. Exibe mensagem de confirmação ao final.
+
+    Parâmetros:
+        email_usuario (str): E-mail do usuário logado, usado para localizar seus dados no arquivo.
+
+    Exceções tratadas:
+        Exception:
+            Qualquer erro ocorrido durante o processo de leitura, validação ou escrita será capturado, em e,
+            exibindo uma mensagem de erro no terminal.
+
+    Observação:
+        - O arquivo de usuários é reescrito por completo, com os dados atualizados apenas do usuário logado;
+        - A senha só pode ser alterada se a antiga for confirmada corretamente;
+        - O formato do arquivo segue: nome;email;senha.
+    """
+
     try:
         with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
-            linhas = arquivo.readlines()
+            usuarios = arquivo.readlines()
 
         nova_lista = []
-        for linha in linhas:
+        for linha in usuarios:
             nome, email, senha = linha.strip().split(";")
             if email == email_usuario:
                 print("O que deseja alterar?")
@@ -316,6 +592,34 @@ def alterar_dados_usuario(email_usuario):
         print("Erro ao alterar dados:", e)
 
 def redefinir_senha():
+    """
+    Permite ao usuário redefinir sua senha através de verificação por e-mail caso a esqueça.
+
+    Etapas do processo:
+        1. Solicita o e-mail do usuário e verifica se está cadastrado;
+        2. Envia um código de verificação para o e-mail informado;
+        3. O usuário tem até 3 tentativas para inserir o código corretamente;
+        4. Se o código for validado, solicita uma nova senha com validação;
+        5. Atualiza a senha no arquivo de usuários.
+    funções:
+        email_ja_cadastrado(email):
+            Verifica se o e-mail informado já existe no sistema.
+        enviar_email(email, codigo, mensagem):
+            Envia um e-mail com o código de verificação para o usuário.
+        validar_senha(email):
+            Solicita a criação de uma nova senha com validações e confirma a identidade via e-mail.
+        Exceções tratadas:
+    Exception:
+        Caso ocorra qualquer erro durante a leitura ou escrita do arquivo, em 'e',
+        uma mensagem será exibida informando o problema.
+
+    Observações:
+        - A nova senha deve seguir os mesmos critérios da função `validar_senha`;
+        - O código de verificação é enviado por e-mail através da função `enviar_email`;
+        - O processo é cancelado após 3 tentativas incorretas de digitar o código;
+        - O formato do arquivo é: nome;email;senha.
+    """
+
     print("\n=== Redefinir Senha ===")
     email = input("Digite seu email: ").strip().lower()
 
@@ -337,10 +641,10 @@ def redefinir_senha():
             # Atualiza a senha no arquivo
             try:
                 with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as arquivo:
-                    linhas = arquivo.readlines()
+                    usuarios = arquivo.readlines()
 
                 with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as arquivo:
-                    for linha in linhas:
+                    for linha in usuarios:
                         nome, e, senha_antiga = linha.strip().split(";")
                         if e == email:
                             arquivo.write(f"{nome};{email};{nova_senha}\n")
@@ -360,6 +664,32 @@ def redefinir_senha():
 # Gereciamento de bolsas pelo ADM
 # ----------------------------
 def menu_gerenciar_bolsas():
+    """
+    Exibe o menu de gerenciamento de bolsas e direciona para as ações disponíveis de acordo com a escolha do administrador.
+
+    Etapas do processo:
+        1. Mostra um menu com as opções disponíveis para o gerenciamento de bolsas;
+        2. Aguarda a escolha do usuário;
+        3. Executa a função correspondente com base na opção escolhida;
+        4. Permite repetir o processo até que o usuário escolha a opção de voltar.
+
+    Funções utilizadas:
+        adicionar_bolsa():
+            Adiciona uma nova bolsa ao sistema.
+
+        listar_bolsas():
+            Exibe a lista de todas as bolsas cadastradas.
+
+        editar_bolsa():
+            Permite editar os dados de uma bolsa específica.
+
+        excluir_bolsa():
+            Exclui uma bolsa existente do sistema.
+
+    Observações:
+        - O menu permanece em loop até que o usuário selecione a opção "Voltar";
+        - Em caso de opção inválida, uma mensagem é exibida solicitando nova tentativa.
+    """
     while True:
         print("\n=== GERENCIAR BOLSAS ===")
         print("1 - Adicionar nova bolsa")
@@ -385,6 +715,34 @@ def menu_gerenciar_bolsas():
 #--------- Funcionalidades (menu_gerenciar_bolsas) ---------
 
 def adicionar_bolsa():
+    """
+    Adiciona uma nova bolsa ao sistema, coletando e validando os dados inseridos pelo usuário.
+
+    Etapas do processo:
+        1. Solicita o tipo da bolsa (Atleta, Pesquisa ou Técnica);
+        2. Valida o tipo informado;
+        3. Coleta e valida os seguintes dados da bolsa:
+            - Título
+            - Instituição
+            - Valor
+            - Duração
+            - Instruções das atividades
+            - Local das atividades
+            - Número de vagas
+        4. Salva as informações no arquivo de bolsas.
+
+    Funções:
+        validar_texto():
+            Valida se os campos de texto contêm apenas letras, espaços e pontuação básica.
+        validar_numero():
+            Valida se a entrada é numérica (ex: valor da bolsa e número de vagas).
+
+    Observações:
+        - O tipo da bolsa deve ser obrigatoriamente: Atleta, Pesquisa ou Técnica;
+        - Caso algum dado seja inválido, a função exibe uma mensagem e encerra a operação sem salvar;
+        - As bolsas são armazenadas no formato:
+            tipo;titulo;instituicao;valor;duracao;instrucoes;local;vagas
+    """
     print("\n=== Adicionar Nova Bolsa ===")
 
     tipo = input("Tipo da bolsa (Atleta, Pesquisa, Tecnica): ").strip().lower().title()
@@ -405,18 +763,33 @@ def adicionar_bolsa():
 
     print("Bolsa cadastrada com sucesso!")
 
-
 def listar_bolsas():
+    """
+    Lista todas as bolsas cadastradas no sistema, exibindo os detalhes de cada uma.
+
+    Etapas do processo:
+        1. Abre o arquivo de bolsas e lê todas as linhas;
+        2. Verifica se há bolsas cadastradas:
+            - Se não houver, informa o usuário e encerra;
+            - Se houver, exibe os dados organizados de cada bolsa.
+
+    Exceções tratadas:
+        FileNotFoundError: Caso o arquivo de bolsas não exista, uma mensagem de erro será exibida.
+
+    Observações:
+        - A função apenas exibe as informações, sem modificar o arquivo.
+    """
+
     try:
         with open(ARQUIVO_BOLSAS, "r", encoding="utf-8") as arquivo:
-            linhas = arquivo.readlines()
+            bolsas = arquivo.readlines()
 
-        if not linhas:
+        if not bolsas:
             print("Nenhuma bolsa cadastrada ainda.")
             return
 
         print("\n=== Lista de Bolsas ===")
-        for i, linha in enumerate(linhas, 1):
+        for i, linha in enumerate(bolsas, 1):
             tipo, titulo, instituicao, valor, duracao, instrucoes, local, vagas = linha.strip().split(";")
             print(f"\n{i}. Tipo: {tipo.capitalize()}")
             print(f"   Titulo: {titulo}")
@@ -430,6 +803,33 @@ def listar_bolsas():
         print("Arquivo de bolsas não encontrado.")
 
 def editar_bolsa():
+    """
+    Permite ao administrador editar os dados de uma bolsa já cadastrada no sistema.
+
+    Etapas do processo:
+        1. Lista os títulos das bolsas disponíveis usando a função `listar_titulos_bolsas()`;
+        2. Solicita ao administrador o número da bolsa que deseja editar;
+        3. Para cada campo da bolsa (exceto o tipo), solicita um novo valor:
+            - Se o campo for deixado em branco (apertar Enter), mantém o valor anterior;
+        4. Substitui os dados antigos pela nova linha modificada;
+        5. Reescreve o arquivo com a lista atualizada de bolsas.
+
+    Funções utilizadas:
+        - listar_titulos_bolsas():
+            Retorna uma lista com todas as linhas (bolsas) do arquivo para permitir a seleção.
+        - validar_texto(mensagem, vazio=True/False):
+            Solicita e valida textos como título, instituição, duração, instruções e local.
+        - validar_numero(mensagem, vazio=True/False):
+            Solicita e valida valores numéricos como valor da bolsa e número de vagas.
+
+    Exceções tratadas:
+        - ValueError: Caso o número digitado não seja um inteiro válido.
+
+    Observações:
+        - O operador Walrus (`:=`) é utilizado para simplificar a atribuição condicional dos novos valores;
+        - Apenas os campos editáveis são atualizados. O tipo da bolsa não é alterado nesta função.
+    """
+
     bolsas = listar_titulos_bolsas()
     if not bolsas:
         return
@@ -471,6 +871,28 @@ def editar_bolsa():
         print("Entrada inválida.")
 
 def excluir_bolsa():
+    """
+    Exclui uma bolsa cadastrada com base na escolha do usuário.
+
+    Etapas do processo:
+        1. Lista todas as bolsas disponíveis usando a função `listar_titulos_bolsas()`;
+        2. Solicita ao usuário que escolha a bolsa a ser excluída pelo número da lista;
+        3. Verifica se a escolha é válida (número dentro do intervalo);
+        4. Solicita confirmação do usuário antes de excluir;
+        5. Remove a bolsa da lista e reescreve o arquivo com os dados atualizados.
+
+    Funções utilizadas:
+        - listar_titulos_bolsas():
+            Retorna todas as linhas do arquivo de bolsas, usadas para exibir e selecionar.
+
+    Exceções tratadas:
+        - ValueError: Caso o valor digitado para a escolha não seja um número inteiro.
+
+    Observações:
+        - A exclusão é feita apenas se o usuário confirmar com "s";
+        - O sistema regrava o arquivo `ARQUIVO_BOLSAS` com as bolsas restantes.
+    """
+
     bolsas = listar_titulos_bolsas()
     if not bolsas:
         return
@@ -500,6 +922,26 @@ def excluir_bolsa():
 # Vizualização das bolsa pelo usuário
 # ----------------------------
 def menu_bolsas(nome):
+    """
+    Exibe um menu interativo para que o usuário visualize bolsas disponíveis.
+
+    Parâmetros:
+        nome (str): Nome do usuário que está acessando o menu.
+
+    Etapas do processo:
+        1. Apresenta ao usuário um menu com duas opções:
+            - Visualizar bolsas disponíveis;
+            - Sair do menu.
+        3. Repete o menu até que o usuário escolha a opção de sair.
+
+    Funções utilizadas:
+        - listar_bolsas():
+            Exibe as bolsas cadastradas no sistema, com todos os detalhes.
+
+    Observações:
+        - O menu é repetido em loop enquanto a opção escolhida for inválida ou diferente de "2";
+    """
+
     while True:
         print(f"\nEssas são as bolsas disponiveis no momento {nome}")
         print("1 - Vizualizar bolsas disponiveis")
@@ -517,6 +959,26 @@ def menu_bolsas(nome):
 # Menus Principais (ADM e usuário)
 # ----------------------------
 def menu_adm():
+    """
+    Exibe o menu principal para o administrador do sistema.
+
+    Este menu oferece opções para que o administrador gerencie tanto o sistema de usuários
+    quanto as bolsas disponíveis, além de permitir a saída do painel administrativo.
+
+    Etapas do processo:
+        1. Mostra o menu com três opções:
+            - Gerenciar Sistema: Acessa funções relacionadas aos usuários.
+            - Gerenciar Bolsas: Acessa o gerenciamento de bolsas cadastradas no sistema.
+            - Sair.
+        3. Continua exibindo o menu até que a opção de sair seja escolhida.
+
+    Funções:
+        - menu_gerenciar_sistema():
+            Menu com opções de gerenciamento de usuários (cadastro, excluir etc).
+        - menu_gerenciar_bolsas():
+            Menu com opções de gerenciamento de bolsas (cadastro, listagem etc).
+    """
+
     while True:
         print("=== MENU ADMINISTRADOR ===\n"
         "1 - Gerenciar Sistema\n"
@@ -534,6 +996,31 @@ def menu_adm():
             print("Opção inválida.")
 
 def menu_usuario(nome, email):
+    """
+    Exibe o menu principal para um usuário comum do sistema.
+
+    Este menu permite ao usuário acessar as configurações da sua conta, visualizar bolsas disponíveis
+    ou encerrar a sessão.
+
+    Parâmetros:
+        nome (str): Nome do usuário logado.
+        email (str): Email do usuário logado.
+
+    Etapas do processo:
+        1. Exibe três opções principais:
+            - Configurações: Permite ao usuário editar seu nome, senha ou excluir sua conta.
+            - Bolsas: Exibe as bolsas cadastradas disponíveis.
+            - Sair.
+        3. Atualiza o nome do usuário, caso ele seja alterado nas configurações.
+        4. Continua mostrando o menu até que o usuário escolha sair.
+
+    Funções:
+        - menu_configuracoes(nome, email):
+            Abre o submenu de configurações da conta do usuário (editar, excluir, etc).
+            Retorna o nome atualizado caso o usuário o altere.
+        - menu_bolsas(nome):
+            Lista todas as bolsas disponíveis para visualização.
+    """
     while True:
         print(f"\nBem-vindo, {nome}!")
         print("1 - Configurações")
@@ -554,6 +1041,31 @@ def menu_usuario(nome, email):
 #Menus de Crud (usuário e ADM)
 #-----------------------------
 def menu_configuracoes(nome, email):
+    """
+    Menu de configurações pra usuário logado gerenciar sua conta.
+
+    Aqui o usuário pode:
+    1. Ver suas infos (nome e email).
+    2. Alterar seus dados (nome ou senha).
+    3. Excluir sua conta (com confirmação e segurança).
+    4. Voltar pro menu anterior.
+
+    Parâmetros:
+        nome (str): Nome do usuário atual.
+        email (str): Email do usuário atual.
+
+    Funções:
+        - alterar_dados_usuario(email):
+            Permite editar nome ou senha.
+        - excluir_propria_conta(email):
+            Faz o processo seguro de excluir a conta.
+        - limpar_terminal():
+            Limpa a tela pra deixar tudo clean.
+        - menu_login_cadastro():
+            Redireciona pra tela inicial de login/cadastro.
+        - time.sleep(): Dá uma pausa no código.
+    """
+
     while True:
         print("\n=== CONFIGURAÇÕES ===")
         print("1 - Ver minhas informações")
@@ -579,6 +1091,29 @@ def menu_configuracoes(nome, email):
             print("Opção inválida.")
 
 def menu_gerenciar_sistema():
+    """
+    Exibe o menu de gerenciamento do sistema de usuários, permitindo cadastro, listagem e exclusão.
+
+    Opções do menu:
+        1 - Cadastrar novo usuário: chama a função para realizar o cadastro.
+        2 - Listar usuários: exibe todos os usuários cadastrados.
+        3 - Excluir usuário: permite excluir um usuário pelo email.
+        4 - Voltar: retorna ao menu anterior.
+
+    Funcionamento:
+        O menu roda em loop até o administrador escolher a opção de voltar.
+        Valida a opção escolhida e executa a função correspondente.
+        Exibe mensagem de opção inválida caso o administrador digite algo fora do esperado.
+
+    Funções:
+        cadastrar_usuario():
+            Realiza o cadastro de um novo usuário com validações.
+        listar_usuarios():
+            Lista todos os usuários cadastrados no sistema.
+        excluir_usuario():
+            Exclui um usuário existente a partir do email informado.
+    """
+
     while True:
         print("\n=== GERENCIAR SISTEMA ===")
         print("1 - Cadastrar novo usuário")
@@ -598,11 +1133,39 @@ def menu_gerenciar_sistema():
         else:
             print("Opção inválida.")
 
-
 # ----------------------------
 # Execução Principal (Login e cadastro)
 # ----------------------------
 def menu_login_cadastro():
+    """
+    Exibe o menu inicial do sistema, permitindo ao usuário realizar login, cadastro, redefinir senha ou sair.
+
+    Opções do menu:
+        1 - Login: chama a função de login para autenticar o usuário.
+        2 - Cadastrar-se: chama a função para cadastrar novo usuário.
+        3 - Redefinir senha: inicia o processo de recuperação de senha via email.
+        4 - Sair: encerra o programa.
+
+    Funcionamento:
+        Após limpar a tela, o menu roda em loop até o usuário escolher sair.
+        Se o login for bem-sucedido, direciona para o menu do administrador ou do usuário comum.
+        Valida as opções digitadas e chama as funções correspondentes.
+        Exibe mensagem de erro para opção inválida.
+
+    Funções:
+        limpar_terminal():
+            Limpa a tela do terminal para melhor visualização.
+        login():
+            Realiza a autenticação do usuário, retornando nome e email se bem-sucedido.
+        cadastrar_usuario():
+            Realiza o cadastro de um novo usuário no sistema.
+        redefinir_senha():
+            Permite o usuário redefinir sua senha após confirmação via email.
+        menu_adm():
+            Menu principal para o administrador gerenciar o sistema e bolsas.
+        menu_usuario(nome, email):
+            Menu principal para o usuário comum acessar configurações e bolsas.
+    """
     limpar_terminal()
     while True:
         print("Uni Bolsas UFRPE\n"
