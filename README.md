@@ -19,7 +19,7 @@
 ## 🧠 Estrutura do Projeto
 
 ```
-├── UNIBOLSAS.py          # Código-fonte principal
+├── unibolsas.py          # Código-fonte principal
 ├── usuarios.txt           # Base de dados local de usuários
 ├── bolsas.txt             # Base de dados local das bolsas cadastradas
 └── README.md              # Documentação do projeto
@@ -93,7 +93,7 @@ python "unibolsas.py"
 
 - Python 3.x  
 - Acesso à internet para envio de email  
-- Conta Gmail com senha de app gerada  
+- Conta com domínio da UFRPE para acessar o sistema  
 
 ---
 
