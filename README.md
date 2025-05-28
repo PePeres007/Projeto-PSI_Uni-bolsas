@@ -52,7 +52,7 @@ cd unibolsas
 2. **Execute o programa no terminal:**
 
 ```bash
-python "UNIBOLSAS.py"
+python "unibolsas.py"
 ```
 
 ---
